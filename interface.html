@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Passeio do Cavalo · Complexidade de Algoritmos</title>
+<style>
+:root{
+  --bg:#f3f6fb; --panel:#ffffff; --panel2:#f0f3f9; --line:#dbe2ef; --txt:#1c2433; --mut:#5d6b85;
+  --acc:#2563eb; --acc2:#ea8a1c; --ok:#15803d; --warn:#b45309; --bad:#b91c1c; --info:#1d4ed8;
+  --claro:#e9dfc7; --escuro:#6f8f72;
+}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{margin:0;min-height:100vh;background:radial-gradient(1200px 600px at 20% -10%,#dbe7fb 0,var(--bg) 60%) no-repeat;color:var(--txt);
+  font:15px/1.45 "Segoe UI",system-ui,-apple-system,Roboto,sans-serif}
+header{padding:20px 28px 6px;display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+header h1{margin:0;font-size:24px;letter-spacing:.2px}
+header h1 span{color:var(--acc)}
+header p{margin:0;color:var(--mut);font-size:13px}
+main{display:grid;grid-template-columns:290px minmax(340px,1fr) 300px;gap:18px;padding:14px 28px 28px;align-items:start}
+@media(max-width:1100px){main{grid-template-columns:1fr 1fr}.boardcol{grid-column:1/-1;order:-1}}
+@media(max-width:700px){main{grid-template-columns:1fr;padding:12px}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:0 4px 18px rgba(40,60,100,.08)}
+.card h2{margin:0 0 12px;font-size:12px;text-transform:uppercase;letter-spacing:1.2px;color:var(--mut);font-weight:600}
+label{display:block;font-size:13px;color:var(--mut);margin:12px 0 6px}
+.seg{display:flex;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:3px;gap:3px}
+.seg button{flex:1;background:transparent;border:0;color:var(--mut);padding:8px;border-radius:8px;cursor:pointer;font:inherit;font-weight:600}
+.seg button.on{background:var(--acc);color:#fff}
+.strat{display:flex;flex-direction:column;gap:8px}
+.strat button{text-align:left;background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:9px 11px;cursor:pointer;font:inherit}
+.strat button b{display:block;font-size:14px}
+.strat button small{color:var(--mut);font-size:12px}
+.strat button.on{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc) inset;background:#e8effd}
+input[type=number]{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:8px 10px;font:inherit}
+input[type=range]{width:100%;accent-color:var(--acc)}
+.row{display:flex;gap:8px}
+.btn{flex:1;border:0;border-radius:10px;padding:11px 12px;font:inherit;font-weight:700;cursor:pointer;color:#fff;background:var(--acc)}
+.btn.sec{background:var(--panel2);color:var(--txt);border:1px solid var(--line)}
+.btn.warn{background:var(--acc2)}
+.btn:hover{filter:brightness(1.08)}
+.btn:disabled{opacity:.5;cursor:wait}
+.toggles label{display:flex;align-items:center;gap:8px;margin:8px 0 0;color:var(--txt);font-size:13px;cursor:pointer}
+.toggles input{accent-color:var(--acc)}
+.boardcol{display:flex;flex-direction:column;gap:12px;align-items:center}
+.boardwrap{width:100%;max-width:640px;aspect-ratio:1;position:relative}
+canvas{width:100%;height:100%;border-radius:14px;box-shadow:0 10px 32px rgba(40,60,100,.22);cursor:pointer;display:block}
+.hint{font-size:12px;color:var(--mut);text-align:center}
+.player{width:100%;max-width:640px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 14px}
+.ctrl{display:flex;align-items:center;gap:6px;justify-content:center;margin-bottom:6px}
+.ctrl button{width:40px;height:36px;border-radius:9px;border:1px solid var(--line);background:var(--panel2);color:var(--txt);cursor:pointer;font-size:15px}
+.ctrl button.play{width:54px;background:var(--acc);color:#fff;border:0;font-weight:700}
+.ctrl button:hover{filter:brightness(1.15)}
+.passo{text-align:center;color:var(--mut);font-size:12px;margin-top:2px}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kpi{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.kpi small{display:block;color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.8px}
+.kpi b{font-size:21px}
+.kpi.full{grid-column:1/-1}
+.bar{height:8px;background:var(--panel2);border-radius:6px;overflow:hidden;margin-top:8px;border:1px solid var(--line)}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));width:0;transition:width .25s}
+.badge{display:inline-block;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;margin-top:6px}
+.b-ok{background:#dbeafe;color:#1d4ed8} .b-info{background:#ede9fe;color:#6d28d9}
+.b-warn{background:#fef3c7;color:var(--warn)} .b-bad{background:#fee2e2;color:var(--bad)}
+.nota{font-size:12.5px;color:var(--mut);margin-top:10px}
+.cmp{grid-column:1/-1}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{padding:9px 10px;text-align:right;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--mut);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.8px}
+.barcell{width:34%}
+.barcell div{height:14px;border-radius:5px;background:linear-gradient(90deg,var(--acc),var(--acc2));min-width:3px}
+.err{color:var(--bad);font-size:13px;margin-top:8px}
+</style>
+</head>
+<body>
+<header>
+  <h1>♞ Passeio do <span>Cavalo</span></h1>
+  <p>NCC0234 · Complexidade de Algoritmos · UERN — Warnsdorff + retrocesso limitado</p>
+</header>
+
+<main>
+  <!-- CONTROLES -->
+  <section class="card">
+    <h2>Configuração</h2>
+    <label>Tabuleiro</label>
+    <div class="seg" id="segDim"><button data-d="5">5 × 5</button><button data-d="8" class="on">8 × 8</button></div>
+
+    <label>Estratégia</label>
+    <div class="strat" id="estrategias">
+      <button data-e="hibrida" class="on"><b>Híbrida</b><small>Warnsdorff + retrocesso com limite</small></button>
+      <button data-e="warnsdorff"><b>Warnsdorff</b><small>Guloso, sem retrocesso</small></button>
+      <button data-e="forca"><b>Força bruta</b><small>Retrocesso em ordem fixa</small></button>
+    </div>
+
+    <label for="lim">Limite de nós visitados</label>
+    <input type="number" id="lim" value="5000000" min="1000" step="100000">
+
+    <div class="row" style="margin-top:16px">
+      <button class="btn" id="btnRun">Executar</button>
+      <button class="btn warn" id="btnAnim">Animar</button>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button class="btn sec" id="btnCmp">Comparar estratégias</button>
+    </div>
+    <div class="err" id="erro"></div>
+
+    <h2 style="margin-top:20px">Exibição</h2>
+    <div class="toggles">
+      <label><input type="checkbox" id="tNum" checked> Números da ordem</label>
+      <label><input type="checkbox" id="tLinha" checked> Trajeto</label>
+      <label><input type="checkbox" id="tCalor" checked> Destacar casas visitadas</label>
+      <label><input type="checkbox" id="tProx" checked> Próximos movimentos</label>
+    </div>
+  </section>
+
+  <!-- TABULEIRO -->
+  <section class="boardcol">
+    <div class="boardwrap"><canvas id="cv"></canvas></div>
+    <div class="hint">Clique em uma casa para definir a posição inicial · início atual: <b id="iniTxt">(0, 0)</b></div>
+  </section>
+
+  <!-- MÉTRICAS -->
+  <section class="card">
+    <h2>Resultado</h2>
+    <div class="kpis">
+      <div class="kpi full"><small>Casas visitadas</small><b id="kVis">—</b>
+        <div class="bar"><i id="kBar"></i></div></div>
+      <div class="kpi"><small>Nós visitados</small><b id="kNos">—</b></div>
+      <div class="kpi"><small>Retrocessos</small><b id="kRet">—</b></div>
+      <div class="kpi"><small>Tempo</small><b id="kTempo">—</b></div>
+      <div class="kpi"><small>Passeio completo</small><b id="kComp">—</b></div>
+    </div>
+    <span class="badge b-info" id="badge">Aguardando execução</span>
+    <div class="nota" id="nota">Métrica de esforço: <b>nós visitados</b> — quantas vezes o cavalo é colocado em uma casa (inclui recolocações após retrocesso).</div>
+  </section>
+
+  <!-- COMPARAÇÃO -->
+  <section class="card cmp" id="cmpBox" style="display:none">
+    <h2>Comparação das estratégias — mesma posição inicial</h2>
+    <table>
+      <thead><tr><th>Estratégia</th><th>Casas</th><th>Nós</th><th>Retrocessos</th><th>Tempo</th><th>Parada</th><th class="barcell">Esforço (nós, escala log)</th></tr></thead>
+      <tbody id="cmpBody"></tbody>
+    </table>
+    <div class="nota">A força bruta é executada com limite de 2.000.000 nós nesta comparação.</div>
+  </section>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const NOMES = {hibrida:"Híbrida", warnsdorff:"Warnsdorff", forca:"Força bruta"};
+const PARADA = {
+  completo:["Passeio completo encontrado","b-ok"],
+  otimo:["Máximo possível atingido (paridade) — passeio completo impossível","b-info"],
+  esgotado:["Busca esgotada — não existe passeio completo","b-info"],
+  limite:["Encerrado pelo limite de nós","b-warn"],
+  beco:["Limitação da estratégia (sem saída, sem retrocesso)","b-bad"]
+};
+const MOV = [[2,1],[1,2],[-1,2],[-2,1],[-2,-1],[-1,-2],[1,-2],[2,-1]];
+
+const S = {dim:8, est:"hibrida", ini:[0,0], dados:null, passo:1, tocando:false, t0:0, kpos:null};
+const DUR = 380; // ms por movimento do cavalo
+const cv = $("cv"), ctx = cv.getContext("2d");
+
+/* ---------- desenho ---------- */
+function ajustaCanvas(){
+  const r = cv.getBoundingClientRect(), d = window.devicePixelRatio || 1;
+  cv.width = Math.round(r.width*d); cv.height = Math.round(r.height*d);
+  desenha();
+}
+function mistura(a,b,t){ // a,b = [r,g,b]
+  return `rgb(${a.map((x,i)=>Math.round(x+(b[i]-x)*t)).join(",")})`;
+}
+function desenha(){
+  const W = cv.width, n = S.dim, T = W/n;
+  ctx.clearRect(0,0,W,W);
+  const d = S.dados, k = d ? Math.min(S.passo, d.caminho.length) : 0;
+  const pts = d ? d.caminho.slice(0,k) : [];
+  const ordem = {}; pts.forEach((p,i)=>ordem[p[0]+","+p[1]]=i+1);
+  const total = d ? d.caminho.length : 1;
+  const verde=[96,165,250], ambar=[251,146,60];
+
+  for(let r=0;r<n;r++) for(let c=0;c<n;c++){
+    const par=(r+c)%2===0;
+    ctx.fillStyle = par ? "#f0d9b5" : "#b58863";
+    ctx.fillRect(c*T,r*T,T,T);
+    const o = ordem[r+","+c];
+    if(o && $("tCalor").checked){
+      const t = total>1 ? (o-1)/(total-1) : 0;   // destaque amarelo, como nos sites de xadrez
+      ctx.fillStyle = `rgba(250,204,21,${0.30+0.20*t})`;
+      ctx.fillRect(c*T,r*T,T,T);
+    }
+  }
+  // coordenadas
+  ctx.font = `600 ${T*.16}px "Segoe UI",sans-serif`;
+  ctx.fillStyle="rgba(60,40,20,.6)"; ctx.textAlign="left"; ctx.textBaseline="top";
+  for(let i=0;i<n;i++){ ctx.fillText(i, 3, i*T+3); if(i>0) ctx.fillText(i, i*T+3, 3); }
+
+  // trajeto
+  if($("tLinha").checked && pts.length>1){
+    ctx.lineWidth = Math.max(1.5,T*.03); ctx.lineJoin="round"; ctx.lineCap="round";
+    ctx.strokeStyle="rgba(15,21,32,.45)"; ctx.beginPath();
+    pts.forEach((p,i)=>{const x=p[1]*T+T/2,y=p[0]*T+T/2; i?ctx.lineTo(x,y):ctx.moveTo(x,y);});
+    ctx.stroke();
+  }
+  // próximos movimentos a partir da casa atual
+  const atual = pts.length ? pts[pts.length-1] : S.ini;
+  if($("tProx").checked){
+    for(const [dr,dc] of MOV){
+      const r=atual[0]+dr, c=atual[1]+dc;
+      if(r<0||c<0||r>=n||c>=n||ordem[r+","+c]) continue;
+      ctx.beginPath(); ctx.arc(c*T+T/2,r*T+T/2,T*.11,0,7);
+      ctx.fillStyle="rgba(246,173,85,.95)"; ctx.fill();
+      ctx.lineWidth=2; ctx.strokeStyle="rgba(15,21,32,.7)"; ctx.stroke();
+    }
+  }
+  // números
+  if($("tNum").checked){
+    ctx.textAlign="center"; ctx.textBaseline="middle";
+    ctx.font = `700 ${T*(n>6?.3:.34)}px "Segoe UI",sans-serif`;
+    pts.forEach((p,i)=>{
+      const x=p[1]*T+T/2, y=p[0]*T+T/2+T*.01;
+      ctx.lineWidth=T*.09; ctx.lineJoin="round"; ctx.strokeStyle="rgba(255,255,255,.85)";
+      ctx.strokeText(i+1,x,y); ctx.fillStyle="#0f1520"; ctx.fillText(i+1,x,y);
+    });
+  }
+  // início
+  ctx.lineWidth=Math.max(3,T*.05); ctx.strokeStyle="#f56565";
+  ctx.strokeRect(S.ini[1]*T+ctx.lineWidth/2,S.ini[0]*T+ctx.lineWidth/2,T-ctx.lineWidth,T-ctx.lineWidth);
+  // cavalo (sempre visível; durante a animação desliza e "salta" entre as casas)
+  {
+    const pos = S.kpos || atual;
+    const x=pos[1]*T+T/2, y=pos[0]*T+T/2;
+    const lift = S.kpos ? Math.sin(Math.PI*S.kt)*T*.22 : 0;
+    ctx.fillStyle="rgba(0,0,0,.22)"; ctx.beginPath();
+    ctx.ellipse(x, y+T*.3, T*(.2-lift/T*.25), T*.07, 0, 0, 7); ctx.fill();
+    ctx.font=`${T*.82}px "Segoe UI Symbol","Noto Sans Symbols2","Apple Symbols",serif`;
+    ctx.textAlign="center"; ctx.textBaseline="middle";
+    ctx.lineWidth=T*.07; ctx.lineJoin="round"; ctx.strokeStyle="#fff";
+    ctx.strokeText("♞", x, y-lift+T*.03);
+    ctx.fillStyle="#c2410c"; ctx.fillText("♞", x, y-lift+T*.03);
+  }
+  atualizaPlayer();
+}
+
+function atualizaPlayer(){}
+
+/* ---------- dados ---------- */
+const fmt = n => n.toLocaleString("pt-BR");
+const fmtT = ms => ms<1 ? ms.toFixed(3).replace(".",",")+" ms" : ms<1000 ? ms.toFixed(2).replace(".",",")+" ms" : (ms/1000).toFixed(2).replace(".",",")+" s";
+
+function params(est){
+  return `m=${S.dim}&n=${S.dim}&r=${S.ini[0]}&c=${S.ini[1]}&est=${est}&lim=${encodeURIComponent($("lim").value||5000000)}`;
+}
+async function executar(animar){
+  parar(); $("erro").textContent=""; setBusy(true);
+  try{
+    const r = await fetch("/api/resolver?"+params(S.est));
+    const d = await r.json();
+    if(d.erro) throw new Error(d.erro);
+    S.dados=d; S.passo = animar ? 1 : d.caminho.length;
+    mostraResultado(d); desenha();
+    if(animar) tocar();
+  }catch(e){ $("erro").textContent = "Erro: "+e.message; }
+  setBusy(false);
+}
+function setBusy(b){ ["btnRun","btnAnim","btnCmp"].forEach(i=>$(i).disabled=b); }
+
+function mostraResultado(d){
+  $("kVis").textContent=`${d.visitadas} / ${d.total}`;
+  $("kBar").style.width=(100*d.visitadas/d.total)+"%";
+  $("kNos").textContent=fmt(d.nos); $("kRet").textContent=fmt(d.retrocessos);
+  $("kTempo").textContent=fmtT(d.tempo_ms);
+  $("kComp").textContent=d.completo?"Sim":"Não";
+  const [txt,cls]=PARADA[d.parada]||[d.parada,"b-info"];
+  $("badge").textContent=txt; $("badge").className="badge "+cls;
+  $("nota").innerHTML = `Estratégia: <b>${NOMES[d.estrategia]}</b> · início (${d.inicio[0]}, ${d.inicio[1]}) · tabuleiro ${d.linhas}×${d.colunas}.`;
+}
+
+/* ---------- reprodução ---------- */
+function tocar(){
+  if(!S.dados) return;
+  if(S.passo>=S.dados.caminho.length) S.passo=1;
+  S.tocando=true; S.t0=performance.now(); atualizaPlayer(); requestAnimationFrame(quadro);
+}
+function quadro(now){
+  if(!S.tocando) return;
+  const cam=S.dados.caminho;
+  if(S.passo>=cam.length){ parar(); desenha(); return; }
+  let t=(now-S.t0)/DUR;
+  if(t>=1){ S.passo++; S.t0=now; t=0;
+    if(S.passo>=cam.length){ parar(); desenha(); return; } }
+  const a=cam[S.passo-1], b=cam[S.passo];
+  const e = t<.5 ? 2*t*t : 1-2*(1-t)*(1-t);
+  S.kt=t; S.kpos=[a[0]+(b[0]-a[0])*e, a[1]+(b[1]-a[1])*e];
+  desenha(); requestAnimationFrame(quadro);
+}
+function parar(){ S.tocando=false; S.kpos=null; atualizaPlayer(); }
+function vaiPara(p){ if(!S.dados) return; parar(); S.passo=Math.max(1,Math.min(p,S.dados.caminho.length)); desenha(); }
+
+/* ---------- comparação ---------- */
+async function comparar(){
+  $("erro").textContent=""; setBusy(true);
+  try{
+    const r = await fetch("/api/comparar?"+params(S.est));
+    const L = await r.json(); if(L.erro) throw new Error(L.erro);
+    const maxLog = Math.log10(Math.max(...L.map(x=>x.nos),10));
+    $("cmpBody").innerHTML = L.map(x=>{
+      const w = Math.max(2, 100*Math.log10(Math.max(x.nos,1))/maxLog);
+      const [txt] = PARADA[x.parada]||[x.parada];
+      return `<tr><td><b>${NOMES[x.estrategia]}</b></td><td>${x.visitadas}/${x.total}</td><td>${fmt(x.nos)}</td>
+        <td>${fmt(x.retrocessos)}</td><td>${fmtT(x.tempo_ms)}</td><td style="text-align:left">${txt}</td>
+        <td class="barcell"><div style="width:${w}%"></div></td></tr>`;
+    }).join("");
+    $("cmpBox").style.display="block";
+    $("cmpBox").scrollIntoView({behavior:"smooth",block:"nearest"});
+  }catch(e){ $("erro").textContent="Erro: "+e.message; }
+  setBusy(false);
+}
+
+/* ---------- eventos ---------- */
+$("segDim").onclick = e=>{
+  const b=e.target.closest("button"); if(!b) return;
+  S.dim=+b.dataset.d; S.ini=[0,0]; S.dados=null; S.passo=1; parar();
+  [...$("segDim").children].forEach(x=>x.classList.toggle("on",x===b));
+  $("iniTxt").textContent="(0, 0)"; limpaMetricas(); desenha();
+};
+$("estrategias").onclick = e=>{
+  const b=e.target.closest("button"); if(!b) return;
+  S.est=b.dataset.e;
+  [...$("estrategias").children].forEach(x=>x.classList.toggle("on",x===b));
+};
+cv.onclick = e=>{
+  const r=cv.getBoundingClientRect(), T=r.width/S.dim;
+  const c=Math.floor((e.clientX-r.left)/T), l=Math.floor((e.clientY-r.top)/T);
+  if(l<0||c<0||l>=S.dim||c>=S.dim) return;
+  S.ini=[l,c]; $("iniTxt").textContent=`(${l}, ${c})`;
+  executar(false);
+};
+function limpaMetricas(){
+  ["kVis","kNos","kRet","kTempo","kComp"].forEach(i=>$(i).textContent="—");
+  $("kBar").style.width="0"; $("badge").textContent="Aguardando execução"; $("badge").className="badge b-info";
+}
+$("btnRun").onclick=()=>executar(false);
+$("btnAnim").onclick=()=>executar(true);
+$("btnCmp").onclick=comparar;
+["tNum","tLinha","tCalor","tProx"].forEach(i=>$(i).onchange=desenha);
+window.addEventListener("resize",ajustaCanvas);
+ajustaCanvas();
+executar(false);
+</script>
+</body>
+</html>
